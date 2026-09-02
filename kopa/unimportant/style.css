@@ -1,0 +1,14 @@
+.coin{  
+  width: 64px;
+  height: 64px;
+  border: none;
+  background: url("monetkabezfona.png") no-repeat center / contain;
+  cursor: pointer;
+  padding: 0;
+}
+
+#punktuskaits {
+  font-size: 24px;
+  margin-left: 12px;
+  font-family: sans-serif;
+}
