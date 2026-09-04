@@ -1,14 +1,16 @@
-.coin{  
-  width: 64px;
-  height: 64px;
+.icon-btn {
   border: none;
-  background: url("monetkabezfona.png") no-repeat center / contain;
-  cursor: pointer;
+  background: none;
   padding: 0;
+  cursor: pointer;
 }
 
-#punktuskaits {
-  font-size: 24px;
-  margin-left: 12px;
-  font-family: sans-serif;
+.icon-btn img {
+  width: 64px;
+  height: 64px;
+  display: block;
+}
+
+.icon-btn:active img {
+  filter: brightness(0.85);
 }

@@ -1,8 +1,30 @@
- <head>
-    <link rel="stylesheet" href="styles.css">
-    <link rel="stylesheet" href="script.js">
+<!DOCTYPE html>
+<html lang="lv">
+<head>
+  <meta charset="UTF-8">
+  <link rel="stylesheet" href="styles.css">
+  <script src="script.js" defer></script>
 </head>
+<body>
 
+  <button class="icon-btn">
+    <img src="monetkabezfona.png" alt="Click">
+  </button>
+  <span id="punktuskaits">0</span>
 
-<button class="coin" aria-label="Play"></button>
-<span id="punktuskaits">0</span>
+  <p>Reizinātājs: <span id="multiplier-display">1</span></p>
+
+  <button class="buy-multiplier-btn">
+    Pirkt reizinātāju (<span id="multiplier-cost-display">10</span> punkti)
+  </button>
+
+    <p>automātiski klikšķinātāji: <span id="automatic_clicker-display">0</span></p>
+
+  <button class="automatic_clicker">
+    Pirkt klikšķinātāju (<span id="automatic_clicker-cost-display">10</span> punkti)
+  </button>
+
+  <p id="message"></p>
+
+</body>
+</html>
