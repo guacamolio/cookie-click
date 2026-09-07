@@ -1,14 +1,190 @@
-.coin{  
-  width: 64px;
-  height: 64px;
+/* Include borders and padding inside declared element dimensions. */
+* {
+  box-sizing: border-box;
+}
+
+/* The gradient is shared visually by the play area and the upgrades panel. */
+body {
+  margin: 0;
+  font-family: sans-serif;
+  min-height: 100vh;
+  background: linear-gradient(135deg, #f8df65 0%, #f29a38 48%, #8a8a8a 100%);
+}
+
+/* Keep the game above the decorative falling-coin layer. */
+.game-area {
+  position: relative;
+  z-index: 1;
+  min-height: 100vh;
+}
+
+/* This layer cannot capture clicks because it is purely decorative. */
+#falling-coins {
+  position: fixed;
+  z-index: 0;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+/* JavaScript supplies the custom properties for each coin's random appearance. */
+.falling-coin {
+  position: absolute;
+  top: -80px;
+  width: var(--coin-size);
+  height: var(--coin-size);
+  border-radius: 50%;
+  background: url("monetkabezfona.png") center / contain no-repeat;
+  animation: coin-fall var(--fall-duration) linear forwards;
+}
+
+/* Slow movement from above the viewport to below it, with a little sideways drift. */
+@keyframes coin-fall {
+  from {
+    transform: translate3d(0, 0, 0) rotate(0deg);
+  }
+  to {
+    transform: translate3d(var(--drift), 110vh, 0) rotate(360deg);
+  }
+}
+
+/* Position the clicker in the center of the space left of the upgrades panel. */
+.clicker-area {
+  position: absolute;
+  top: 50%;
+  left: 37.5%;
+  width: 480px;
+  height: 480px;
+  transform: translate(-50%, -50%);
+}
+
+/* The main coin is an image-only button, so its browser border is removed. */
+.coin {
+  width: 480px;
+  height: 480px;
   border: none;
   background: url("monetkabezfona.png") no-repeat center / contain;
   cursor: pointer;
   padding: 0;
 }
 
+/* Small press feedback makes a click visible without changing the coin's layout. */
+@keyframes coin-click {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(0.94);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+.coin-clicked {
+  animation: coin-click 140ms ease-out;
+}
+
 #punktuskaits {
+  position: absolute;
+  top: -38px;
+  left: 0;
+  width: 100%;
   font-size: 24px;
-  margin-left: 12px;
-  font-family: sans-serif;
+  margin: 0;
+  text-align: center;
+}
+
+/* The panel fills the right quarter of the viewport. */
+.upgrades-panel {
+  position: fixed;
+  top: 0;
+  right: 0;
+  width: 25vw;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  padding: 20px;
+  background: linear-gradient(135deg, #f8df65 0%, #f29a38 48%, #8a8a8a 100%);
+  border: 2px solid #000;
+}
+
+.upgrades-panel h1 {
+  margin: 0 0 16px;
+  font-size: 22px;
+  text-align: center;
+}
+
+/* Flexible rows spread the upgrades toward the bottom of the panel. */
+.upgrade-list {
+  flex: 1;
+  display: grid;
+  grid-template-rows: repeat(10, minmax(58px, 1fr));
+  gap: 12px;
+}
+
+/* Upgrade buttons are populated with labels by JavaScript. */
+.upgrade-slot {
+  width: 100%;
+  min-height: 58px;
+  padding: 0;
+  color: #000;
+  font: inherit;
+  font-size: 14px;
+  background-color: #c4c4c4;
+  border: 2px solid #000;
+  cursor: pointer;
+}
+
+.upgrade-slot:disabled {
+  color: #555;
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+.upgrade-slot:not(:disabled):hover {
+  background-color: #d4d4d4;
+}
+
+/* Keep the status area stable so the upgrade list does not jump when values change. */
+#game-status {
+  min-height: 36px;
+  margin: 0 0 12px;
+  font-size: 12px;
+  text-align: center;
+}
+
+/* Batch-size controls sit directly below the current stats. */
+.purchase-options {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 5px;
+  margin-bottom: 12px;
+}
+
+.purchase-option {
+  padding: 6px 2px;
+  color: #000;
+  background: #c4c4c4;
+  border: 2px solid #000;
+  cursor: pointer;
+  font: inherit;
+  font-size: 12px;
+}
+
+.purchase-option.active {
+  background: #fff;
+}
+
+/* Bonus coins are separate from falling decoration and can be collected by the player. */
+#bonus-coin {
+  position: fixed;
+  left: 12%;
+  bottom: 12%;
+  width: 72px;
+  height: 72px;
+  border: 3px solid #000;
+  border-radius: 50%;
+  background: #ffd21f url("monetkabezfona.png") center / contain;
+  cursor: pointer;
 }
