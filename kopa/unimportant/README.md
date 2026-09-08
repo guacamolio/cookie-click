@@ -16,15 +16,19 @@ Spēles mehānika:
 
 Papildiespējas (vismaz 5):
 
-• Spēks – palielina punktu skaitu, ko lietotājs iegūst par vienu klikšķi.
+• Spēks /  – palielina punktu skaitu, ko lietotājs iegūst par vienu klikšķi.
 
-• Ātrums – samazina laiku starp automātiskajiem punktu pieaugumiem.
+• Ātrums / X – samazina laiku starp automātiskajiem punktu pieaugumiem.
 
-• Punktu reizinātājs – palielina iegūto punktu daudzumu ar noteiktu koeficientu.
+• Punktu reizinātājs / multiplier – palielina iegūto punktu daudzumu ar noteiktu koeficientu.
 
-• Automātiskie punkti – ļauj iegūt punktus bez lietotāja klikšķināšanas.
+• Automātiskie punkti / automatic_clicker – ļauj iegūt punktus bez lietotāja klikšķināšanas.
 
-• Laika bonusi – piemēram, dubultie punkti noteiktu laika periodu.
+• Laika bonusi / bonus_coin – piemēram, dubultie punkti noteiktu laika periodu.
+
+* vault - iedot coin skaitli no 1000-5000 ik pa laikam 
+
+* money_pouch - izvēlies starp 3 maisiem un katrā no viņiem ir kautkāda spēja/nauda
 
 • Papildu uzlabojumus un spēles mehānikas drīkst izveidot pēc savas izvēles.
 
