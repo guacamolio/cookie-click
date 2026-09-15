@@ -117,16 +117,65 @@ body {
 
 /* Flexible rows spread the upgrades toward the bottom of the panel. */
 .upgrade-list {
-  flex: 1;
+  flex: 0 1 auto;
+  max-height: 55vh;
+  overflow-y: auto;
   display: grid;
-  grid-template-rows: repeat(10, minmax(58px, 1fr));
-  gap: 12px;
+  grid-template-rows: repeat(13, minmax(48px, 1fr));
+  gap: 8px;
+}
+
+.milestones {
+  margin-top: 14px;
+  border-top: 2px solid #000;
+  padding-top: 10px;
+}
+
+.milestones h2 {
+  margin: 0 0 8px;
+  font-size: 14px;
+  text-align: center;
+}
+
+.milestone-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.milestone-card,
+.final-upgrade {
+  min-height: 92px;
+  padding: 8px;
+  color: #000;
+  background: #c4c4c4;
+  border: 2px solid #000;
+  cursor: pointer;
+  font: inherit;
+  font-size: 11px;
+}
+
+.milestone-card:hover:not(:disabled),
+.final-upgrade:hover:not(:disabled) {
+  background: #fff;
+}
+
+.milestone-card:disabled {
+  cursor: not-allowed;
+  opacity: 0.65;
+}
+
+.final-upgrade {
+  width: 100%;
+  margin-top: 8px;
+  background: #ffd21f;
+  font-weight: bold;
 }
 
 /* Upgrade buttons are populated with labels by JavaScript. */
 .upgrade-slot {
   width: 100%;
-  min-height: 58px;
+  min-height: 48px;
   padding: 0;
   color: #000;
   font: inherit;
@@ -187,4 +236,29 @@ body {
   border-radius: 50%;
   background: #ffd21f url("monetkabezfona.png") center / contain;
   cursor: pointer;
+}
+
+#bonus-coin.wave-coin {
+  position: fixed;
+  z-index: 3;
+  transition: left 100ms linear, bottom 100ms linear;
+}
+
+.event-message {
+  position: fixed;
+  z-index: 4;
+  top: 12%;
+  left: 37.5%;
+  transform: translateX(-50%);
+  max-width: 360px;
+  padding: 12px 18px;
+  color: #000;
+  background: #fff3a6;
+  border: 2px solid #000;
+  text-align: center;
+  font-weight: bold;
+}
+
+.final-coin .coin {
+  filter: hue-rotate(150deg) saturate(1.8) drop-shadow(0 0 18px #7fffd4);
 }
