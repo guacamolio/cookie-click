@@ -6,11 +6,15 @@ const upgradeSlots = document.querySelectorAll(".upgrade-slot");
 const purchaseOptions = document.querySelectorAll(".purchase-option");
 const bonusCoin = document.getElementById("bonus-coin");
 const fallingCoins = document.getElementById("falling-coins");
+const milestoneGrid = document.getElementById("milestone-grid");
+const finalUpgrade = document.getElementById("final-upgrade");
+const eventMessage = document.getElementById("event-message");
 
 // Progress is stored as plain numbers in localStorage. Missing or invalid values start at zero.
 let count = Number.parseInt(localStorage.getItem("clickCount"), 10) || 0;
 const savedState = JSON.parse(localStorage.getItem("upgradeState") || "{}");
 const levels = savedState.levels || {};
+const milestonePurchases = savedState.milestones || {};
 
 // These are derived statistics. They are recalculated whenever an upgrade changes level.
 let totalCps = 0;
@@ -19,15 +23,18 @@ let goldenTouch = 0;
 let critChance = 0;
 let multiplier = 1;
 let bonusActiveUntil = 0;
+let bonusEventTimer;
+let waveCoins = 0;
+let waveReward = 1;
 // The selected batch size applies to repeatable upgrades: 1, 10, 100, or every affordable level.
 let purchaseAmount = 1;
 
 // Upgrade data is kept in one table so button rendering and purchase logic use the same values.
 // Repeatable upgrades use the exponential cost formula: base cost * 1.15^current level.
 const upgrades = {
-  piggy: { name: "Piggy Bank", baseCost: 10, cps: 1, repeatable: true },
-  copper: { name: "Polished Copper", baseCost: 25, click: 1, repeatable: true },
-  minting: { name: "Heavy Minting", baseCost: 100, click: 5, repeatable: true },
+  piggy: { name: "Auto Clicker", baseCost: 10, cps: 1, repeatable: true },
+  copper: { name: "Click Power", baseCost: 25, click: 1, repeatable: true },
+  minting: { name: "Heavy Mint", baseCost: 100, click: 5, repeatable: true },
   golden: { name: "Golden Touch", baseCost: 500, golden: 0.01, repeatable: true },
   mint: { name: "Coin Mint", baseCost: 150, cps: 10, repeatable: true },
   detectorists: { name: "Metal Detectorists", baseCost: 1000, cps: 50, repeatable: true },
@@ -39,6 +46,35 @@ const upgrades = {
   alchemist: { name: "Alchemist's Furnace", baseCost: 25000, multiplier: 1.5 },
   timeWarp: { name: "Time Warp", baseCost: 50000, timeWarp: true }
 };
+
+const milestoneData = {
+  copper: [
+    { level: 25, name: "Chrome Fingers", text: "+25% click power", cost: 2500, effect: "click25" },
+    { level: 50, name: "Combo Training", text: "Click streaks grow 50% faster", cost: 15000, effect: "streak" },
+    { level: 75, name: "Coin Cascade", text: "Golden coins trigger a 4-8 coin wave", cost: 75000, effect: "wave" },
+    { level: 100, name: "Infinite Click", text: "Clicks are tripled and never crit for less", cost: 250000, effect: "click100" }
+  ],
+  piggy: [
+    { level: 25, name: "Efficient Gears", text: "+25% CPS", cost: 2500, effect: "cps25" },
+    { level: 50, name: "Lucky Schedule", text: "Bonus events appear twice as often", cost: 15000, effect: "eventRate" },
+    { level: 75, name: "Pouch Parade", text: "Bonus events gain two extra pouches", cost: 75000, effect: "pouches" },
+    { level: 100, name: "Clockwork Empire", text: "CPS is multiplied by 5", cost: 250000, effect: "cps100" }
+  ],
+  minting: [
+    { level: 25, name: "Bigger Dies", text: "+25% click power", cost: 10000, effect: "click25" },
+    { level: 50, name: "Festival Mint", text: "Mint Frenzy events appear", cost: 30000, effect: "mintEvent" },
+    { level: 75, name: "Royal Pouches", text: "Pouches scale with your fortune", cost: 125000, effect: "pouches" },
+    { level: 100, name: "The Golden Press", text: "All event rewards are x10", cost: 500000, effect: "event100" }
+  ],
+  golden: [
+    { level: 25, name: "Gilded Edge", text: "+25% CPS from Golden Touch", cost: 50000, effect: "gold25" },
+    { level: 50, name: "Shiny Magnet", text: "Golden coins stay visible 50% longer", cost: 100000, effect: "goldTime" },
+    { level: 75, name: "Wild Fortune", text: "Every multiplier coin is randomised", cost: 300000, effect: "randomMultiplier" },
+    { level: 100, name: "Midas Engine", text: "Golden rewards are x25", cost: 1000000, effect: "gold100" }
+  ]
+};
+
+const mainMilestoneKeys = Object.keys(milestoneData);
 
 function formatNumber(value) {
   // Floor the display value so fractional CPS bonuses never show as partial coins.
@@ -100,6 +136,13 @@ function calculateStats() {
     goldenTouch += (upgrade.golden || 0) * level;
     critChance += (upgrade.crit || 0) * Math.min(level, upgrade.max || level);
   });
+
+  const purchased = (effect) => Object.values(milestonePurchases).some((effects) => effects.includes(effect));
+  if (purchased("cps25")) totalCps *= 1.25;
+  if (purchased("cps100")) totalCps *= 5;
+  if (purchased("click25")) clickBonus *= 1.25;
+  if (purchased("click100")) clickBonus *= 3;
+  if (purchased("gold25")) goldenTouch *= 1.25;
 }
 
 function updateDisplay() {
@@ -110,7 +153,7 @@ function updateDisplay() {
 function saveGame() {
   // Save only the durable state. Derived stats are recalculated when the page loads.
   localStorage.setItem("clickCount", count);
-  localStorage.setItem("upgradeState", JSON.stringify({ levels }));
+  localStorage.setItem("upgradeState", JSON.stringify({ levels, milestones: milestonePurchases }));
 }
 
 function updateUpgradeButtons() {
@@ -133,6 +176,36 @@ function updateUpgradeButtons() {
     slot.setAttribute("aria-label", slot.textContent);
   });
   status.textContent = `${formatNumber(totalCps)} CPS | +${formatNumber(clickBonus)} per click | x${multiplier}`;
+  renderMilestones();
+}
+
+function hasMilestone(effect) {
+  return Object.values(milestonePurchases).some((effects) => effects.includes(effect));
+}
+
+function getNextMilestone(key) {
+  const purchased = milestonePurchases[key] || [];
+  return milestoneData[key].find((milestone) => !purchased.includes(milestone.effect));
+}
+
+function renderMilestones() {
+  milestoneGrid.replaceChildren();
+  mainMilestoneKeys.forEach((key) => {
+    const next = getNextMilestone(key);
+    const level = levels[key] || 0;
+    if (!next || level < next.level) return;
+    const card = document.createElement("button");
+    card.className = "milestone-card";
+    card.disabled = count < next.cost;
+    card.dataset.upgrade = key;
+    card.textContent = `${upgrades[key].name} ${next.level}\n${next.name}\n${next.text}\n${formatNumber(next.cost)}¢`;
+    card.setAttribute("aria-label", card.textContent.replaceAll("\n", " "));
+    milestoneGrid.appendChild(card);
+  });
+
+  const allPurchased = mainMilestoneKeys.every((key) => !getNextMilestone(key));
+  finalUpgrade.hidden = !allPurchased || hasMilestone("final");
+  finalUpgrade.textContent = "THE LAST COIN - Unlock the Endgame Coin";
 }
 
 function spawnFallingCoin() {
@@ -156,6 +229,9 @@ function spawnFallingCoin() {
 calculateStats();
 updateDisplay();
 updateUpgradeButtons();
+if (hasMilestone("final")) {
+  document.body.classList.add("final-coin");
+}
 
 purchaseOptions.forEach((option) => {
   option.addEventListener("click", () => {
@@ -181,7 +257,7 @@ btn.addEventListener("click", () => {
   if (Math.random() < critChance) {
     earned *= 10;
   }
-  count += Math.floor(earned * multiplier);
+  count += Math.floor(earned * multiplier * (hasMilestone("click100") ? 3 : 1) * (hasMilestone("gold100") ? 25 : 1));
   updateDisplay();
   saveGame();
   updateUpgradeButtons();
@@ -210,6 +286,32 @@ upgradeSlots.forEach((slot) => {
     saveGame();
     updateUpgradeButtons();
   });
+
+  milestoneGrid.addEventListener("click", (event) => {
+    const card = event.target.closest(".milestone-card");
+    if (!card) return;
+    const key = card.dataset.upgrade;
+    const milestone = getNextMilestone(key);
+    if (!milestone || (levels[key] || 0) < milestone.level || count < milestone.cost) return;
+    count -= milestone.cost;
+    milestonePurchases[key] = [...(milestonePurchases[key] || []), milestone.effect];
+    calculateStats();
+    if (milestone.effect === "mintEvent") {
+      showEvent("Festival Mint unlocked: a rich mint event will appear soon!");
+    }
+    updateDisplay();
+    saveGame();
+    updateUpgradeButtons();
+  });
+
+  finalUpgrade.addEventListener("click", () => {
+    if (hasMilestone("final")) return;
+    milestonePurchases.final = ["final"];
+    document.body.classList.add("final-coin");
+    showEvent("THE END OF CONTENT: your coin has become the Celestial Coin!");
+    saveGame();
+    renderMilestones();
+  });
 });
 
 setInterval(() => {
@@ -236,23 +338,40 @@ setInterval(() => {
 }, 60000);
 
 function scheduleBonusCoin() {
-  // Schedule the next bonus independently so the delay is a fresh random 30-60 seconds each time.
-  const delay = 30000 + Math.random() * 30000;
-  setTimeout(() => {
+  // Later milestones shorten the event timer without making events constant.
+  const delay = hasMilestone("eventRate") ? 15000 + Math.random() * 15000 : 30000 + Math.random() * 30000;
+  bonusEventTimer = setTimeout(() => {
     bonusCoin.hidden = false;
+    if (hasMilestone("mintEvent") && Math.random() < 0.35) {
+      bonusCoin.dataset.event = "mint";
+      showEvent("Mint Frenzy! Choose the coin before it vanishes.");
+    }
   }, delay);
 }
 
 bonusCoin.addEventListener("click", () => {
-  // Coin Magnet turns collection into a temporary CPS boost; otherwise the coin grants a flat reward.
+  if (bonusCoin.dataset.wave === "true") {
+    collectWaveCoin();
+    return;
+  }
+  if (hasMilestone("pouches")) {
+    delete bonusCoin.dataset.event;
+    showPouches();
+    return;
+  }
   bonusCoin.hidden = true;
-  if (levels.magnet) {
+  if (bonusCoin.dataset.event === "mint") {
+    count += Math.floor(Math.max(count * 0.1, totalCps * 60) * (hasMilestone("event100") ? 10 : 1));
+    delete bonusCoin.dataset.event;
+    showEvent("The mint explodes with coins!");
+  } else if (levels.magnet) {
     bonusActiveUntil = Date.now() + 15000;
   } else {
-    count += Math.floor(100 * multiplier);
+    count += Math.floor(scaleEventReward(100) * multiplier);
     updateDisplay();
     saveGame();
   }
+  if (hasMilestone("wave")) startGoldenWave();
   scheduleBonusCoin();
 });
 
@@ -264,3 +383,93 @@ setInterval(() => {
 }, 1000);
 
 scheduleBonusCoin();
+
+function scaleEventReward(base) {
+  const scaled = Math.max(base, Math.floor(count * 0.01));
+  return scaled * (hasMilestone("event100") ? 10 : 1) * (hasMilestone("gold100") ? 25 : 1);
+}
+
+function showEvent(message) {
+  eventMessage.textContent = message;
+  eventMessage.hidden = false;
+  window.clearTimeout(showEvent.timeout);
+  showEvent.timeout = window.setTimeout(() => {
+    eventMessage.hidden = true;
+  }, 3500);
+}
+
+function showPouches() {
+  bonusCoin.hidden = true;
+  eventMessage.replaceChildren();
+  const title = document.createElement("strong");
+  title.textContent = "Choose a money pouch";
+  eventMessage.appendChild(title);
+  const options = [
+    { label: "Treasure", reward: scaleEventReward(300) },
+    { label: "Multiplier", multiplier: randomMultiplier() },
+    { label: "Empty / curse", reward: Math.random() < 0.5 ? 0 : -Math.floor(count * 0.25) }
+  ];
+  options.forEach((option) => {
+    const pouch = document.createElement("button");
+    pouch.textContent = option.label;
+    pouch.className = "purchase-option";
+    pouch.addEventListener("click", () => {
+      if (option.multiplier) {
+        const duration = 8000 + Math.random() * 22000;
+        multiplier = option.multiplier;
+        window.setTimeout(() => calculateStats(), duration);
+        showEvent(`${option.multiplier.toFixed(2)}x multiplier for ${Math.ceil(duration / 1000)} seconds!`);
+      } else {
+        count = Math.max(0, count + option.reward);
+        showEvent(option.reward > 0 ? `The pouch granted ${formatNumber(option.reward)}¢!` : "The pouch was cursed!");
+      }
+      updateDisplay();
+      saveGame();
+      updateUpgradeButtons();
+      if (hasMilestone("wave")) startGoldenWave();
+      scheduleBonusCoin();
+    });
+    eventMessage.appendChild(pouch);
+  });
+  eventMessage.hidden = false;
+}
+
+function randomMultiplier() {
+  return 0.75 + Math.random() * 3.25;
+}
+
+function startGoldenWave() {
+  if (waveCoins > 0) return;
+  waveCoins = 4 + Math.floor(Math.random() * 5);
+  waveReward = 1;
+  bonusCoin.dataset.wave = "true";
+  bonusCoin.classList.add("wave-coin");
+  showEvent(`Golden wave: ${waveCoins} coins are coming!`);
+  spawnNextWaveCoin();
+}
+
+function spawnNextWaveCoin() {
+  if (waveCoins <= 0) {
+    bonusCoin.hidden = true;
+    delete bonusCoin.dataset.wave;
+    bonusCoin.classList.remove("wave-coin");
+    return;
+  }
+  bonusCoin.hidden = false;
+  bonusCoin.style.left = `${10 + Math.random() * 75}%`;
+  bonusCoin.style.bottom = `${10 + Math.random() * 70}%`;
+  window.clearTimeout(spawnNextWaveCoin.timeout);
+  spawnNextWaveCoin.timeout = window.setTimeout(() => {
+    waveCoins = 0;
+    spawnNextWaveCoin();
+  }, hasMilestone("goldTime") ? 4500 : 3000);
+}
+
+function collectWaveCoin() {
+  count += Math.floor(scaleEventReward(100) * waveReward * multiplier);
+  waveReward *= 1.35;
+  waveCoins--;
+  updateDisplay();
+  saveGame();
+  spawnNextWaveCoin();
+}

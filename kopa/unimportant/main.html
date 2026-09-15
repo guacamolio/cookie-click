@@ -40,9 +40,15 @@
                 <button class="upgrade-slot" data-upgrade="alchemist"></button>
                 <button class="upgrade-slot" data-upgrade="timeWarp"></button>
             </div>
+            <section class="milestones" aria-labelledby="milestones-title">
+                <h2 id="milestones-title">MILESTONE UPGRADES</h2>
+                <div id="milestone-grid" class="milestone-grid"></div>
+                <button id="final-upgrade" class="final-upgrade" hidden></button>
+            </section>
         </aside>
         <!-- This separate bonus coin is revealed on a random timer. -->
         <button id="bonus-coin" aria-label="Collect bonus coin" hidden></button>
+        <section id="event-message" class="event-message" aria-live="polite" hidden></section>
     </main>
 </body>
 </html>
