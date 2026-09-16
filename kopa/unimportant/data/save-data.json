@@ -1,13 +1,13 @@
 {
-    "coins": 14617.706384620025,
+    "coins": 20392.53463876001,
     "baseClickValue": 46,
     "cps": 14,
     "currentCoinTier": 1,
     "lifetimeStats": {
-        "clicks": 230,
-        "coinsEarned": 23185.70638462003,
+        "clicks": 232,
+        "coinsEarned": 28960.534638760048,
         "upgradesBought": 33,
-        "pouchesOpened": 3,
+        "pouchesOpened": 4,
         "eventCoinsCollected": 1
     },
     "unlockedAchievements": [
