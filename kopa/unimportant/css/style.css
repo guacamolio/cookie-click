@@ -1,0 +1,495 @@
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  min-height: 100vh;
+  background: linear-gradient(135deg, #f8df65 0%, #f29a38 48%, #e08b28 100%);
+  overflow: hidden;
+  user-select: none;
+}
+
+.game-area {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  height: 100vh;
+  width: 100vw;
+}
+
+#falling-coins {
+  position: fixed;
+  z-index: 0;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.falling-coin {
+  position: absolute;
+  top: -60px;
+  width: var(--coin-size, 32px);
+  height: var(--coin-size, 32px);
+  border-radius: 50%;
+  background: url("../assets/images/monetkabezfona.png") center / contain no-repeat;
+  animation: coin-fall var(--fall-duration, 2.5s) linear forwards;
+  opacity: 0.8;
+}
+
+@keyframes coin-fall {
+  0% { transform: translate3d(0, 0, 0) rotate(0deg); opacity: 0.9; }
+  100% { transform: translate3d(var(--drift, 0px), 105vh, 0) rotate(360deg); opacity: 0; }
+}
+
+.clicker-area {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+.score-container {
+  background: rgba(255, 255, 255, 0.25);
+  padding: 12px 28px;
+  border-radius: 16px;
+  backdrop-filter: blur(8px);
+  margin-bottom: 28px;
+  border: 2px solid rgba(255, 255, 255, 0.5);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+}
+
+#punktuskaits {
+  font-size: 42px;
+  font-weight: 800;
+  color: #2c1a04;
+  text-shadow: 1px 1px 2px rgba(255, 255, 255, 0.6);
+}
+
+#cps-display {
+  font-size: 14px;
+  font-weight: 700;
+  color: #4a2d08;
+  margin-top: 4px;
+}
+
+.coin {
+  width: 380px;
+  height: 380px;
+  border: none;
+  background: url("../assets/images/monetkabezfona.png") no-repeat center / contain;
+  cursor: pointer;
+  filter: drop-shadow(0 10px 20px rgba(0, 0, 0, 0.2));
+  transition: transform 0.1s, filter 0.3s;
+  outline: none;
+  display: block;
+  margin: 0 auto;
+}
+
+.coin:hover {
+  transform: scale(1.02);
+}
+
+.coin:active {
+  transform: scale(0.93);
+}
+
+.coin.tier-0, .falling-coin.tier-0 { filter: drop-shadow(0 8px 15px rgba(0, 0, 0, 0.2)); }
+.coin.tier-1, .falling-coin.tier-1 { filter: sepia(1) saturate(2.2) hue-rotate(-25deg) drop-shadow(0 0 20px #b87333); }
+.coin.tier-2, .falling-coin.tier-2 { filter: grayscale(1) brightness(1.35) contrast(0.9) drop-shadow(0 0 25px #c0c0c0); }
+.coin.tier-3, .falling-coin.tier-3 { filter: sepia(1) saturate(2.5) hue-rotate(5deg) brightness(1.12) drop-shadow(0 0 30px #ffd700); }
+.coin.tier-4, .falling-coin.tier-4 { filter: grayscale(1) brightness(1.7) contrast(0.85) drop-shadow(0 0 35px #e5e4e2); }
+.coin.tier-5, .falling-coin.tier-5 { filter: hue-rotate(155deg) saturate(1.8) brightness(1.12) drop-shadow(0 0 40px #00bfff); }
+.coin.tier-6, .falling-coin.tier-6 { filter: hue-rotate(245deg) saturate(2) brightness(1.05) drop-shadow(0 0 50px #9932cc); } 
+
+.floating-text {
+  position: absolute;
+  z-index: 20;
+  font-weight: 800;
+  font-size: 26px;
+  color: #ffffff;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.6);
+  pointer-events: none;
+  animation: floatUp 0.8s ease-out forwards;
+}
+
+@keyframes floatUp {
+  0% { opacity: 1; transform: translateY(0); }
+  100% { opacity: 0; transform: translateY(-60px); }
+}
+
+.pouch-reward-text {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  z-index: 110;
+  max-width: min(90vw, 560px);
+  color: #ffffff;
+  font-size: 24px;
+  font-weight: 800;
+  text-align: center;
+  text-shadow: 2px 2px 5px rgba(0, 0, 0, 0.75);
+  pointer-events: none;
+  transform: translate(-50%, -50%);
+  animation: pouchRewardFloat 1.8s ease-out forwards;
+}
+
+@keyframes pouchRewardFloat {
+  0% { opacity: 0; transform: translate(-50%, -35%); }
+  15% { opacity: 1; }
+  100% { opacity: 0; transform: translate(-50%, -180%); }
+}
+
+.upgrades-panel {
+  width: 380px;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  padding: 20px;
+  background: linear-gradient(180deg, #fce055 0%, #d87d0f 100%);
+  border-left: 3px solid #b85e00;
+  color: #2c1a04;
+  box-shadow: -5px 0 20px rgba(0, 0, 0, 0.15);
+}
+
+.upgrades-panel h1 {
+  margin: 0 0 16px;
+  font-size: 26px;
+  text-align: center;
+  letter-spacing: 2px;
+}
+
+.panel-heading {
+  position: relative;
+}
+
+.icon-btn {
+  position: absolute;
+  top: -4px;
+  right: 0;
+  width: 40px;
+  height: 40px;
+  border: 2px solid #b85e00;
+  border-radius: 50%;
+  background: #fff3a3;
+  cursor: pointer;
+  font-size: 20px;
+}
+
+.icon-btn:hover {
+  background: #ffffff;
+  transform: scale(1.08);
+}
+
+.purchase-options {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 6px;
+  margin-bottom: 16px;
+}
+
+.purchase-option {
+  padding: 8px 0;
+  color: #2c1a04;
+  background: #f7cb5b;
+  border: 2px solid #b85e00;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+.purchase-option.active {
+  background: #ffffff;
+  border-color: #2c1a04;
+}
+
+.upgrade-list {
+  flex: 1;
+  overflow-y: auto;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-auto-rows: max-content;
+  align-content: start;
+  align-items: start;
+  gap: 10px;
+}
+
+.upgrade-slot {
+  width: 100%;
+  padding: 12px 14px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  color: #2c1a04;
+  background: #fce88e;
+  border: 2px solid #b85e00;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  text-align: left;
+}
+
+.upgrade-slot:not(.milestone-upgrade) {
+  grid-column: 1 / -1;
+}
+
+.upgrade-slot.coin-upgrade {
+  background: #fff3a3;
+  border: 2px dashed #b85e00;
+}
+
+.upgrade-slot.milestone-upgrade {
+  width: 100%;
+  height: 143px;
+  min-height: 143px;
+  padding: 9px 10px;
+  background: #b9652f;
+  border-color: #713611;
+  color: #fff1d2;
+  font-size: 12px;
+  line-height: 1.25;
+  align-self: stretch;
+  overflow-wrap: anywhere;
+}
+
+.upgrade-slot.milestone-upgrade small {
+  font-weight: 500;
+  color: #ffe1ad;
+}
+
+.upgrade-slot.milestone-upgrade > span {
+  min-width: 0;
+}
+
+.upgrade-slot.milestone-upgrade > strong:last-child {
+  flex-shrink: 0;
+  margin-left: 6px;
+  font-size: 11px;
+}
+
+.upgrade-slot:not(:disabled):hover {
+  background: #ffffff;
+  border-color: #2c1a04;
+}
+
+.upgrade-slot:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  background: #d4b868;
+}
+
+#settings-btn {
+  position: fixed;
+  bottom: 20px;
+  left: 20px;
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  background: #ffffff;
+  border: 3px solid #b85e00;
+  font-size: 24px;
+  cursor: pointer;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+  z-index: 10;
+  transition: transform 0.2s;
+}
+
+#settings-btn:hover {
+  transform: rotate(45deg) scale(1.1);
+}
+
+.modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+  backdrop-filter: blur(4px);
+}
+
+.modal.hidden {
+  display: none;
+}
+
+.modal-content {
+  background: #fce88e;
+  border: 3px solid #b85e00;
+  padding: 24px 32px;
+  border-radius: 16px;
+  text-align: center;
+  min-width: 320px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+}
+
+.setting-row {
+  margin: 18px 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.action-btn, .close-btn {
+  padding: 8px 16px;
+  background: #f29a38;
+  border: 2px solid #b85e00;
+  border-radius: 8px;
+  font-weight: bold;
+  cursor: pointer;
+  color: #2c1a04;
+}
+
+.action-btn:hover, .close-btn:hover {
+  background: #ffffff;
+}
+
+.pouches-container {
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+  margin-top: 20px;
+}
+
+.pouch {
+  font-size: 64px;
+  cursor: pointer;
+  padding: 10px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.3);
+  transition: transform 0.2s, background 0.2s;
+}
+
+.pouch:hover {
+  transform: scale(1.2);
+  background: rgba(255, 255, 255, 0.6);
+}
+
+#golden-coin-event {
+  position: fixed;
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background: #ffd700 url("../assets/images/monetkabezfona.png") center / contain no-repeat;
+  border: 3px solid #ffffff;
+  box-shadow: 0 0 20px #ffd700;
+  cursor: pointer;
+  z-index: 50;
+  animation: pulse-event 1s infinite alternate;
+}
+
+#treasure-coin-event {
+  position: fixed;
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  background: #54e0a3 url("../assets/images/monetkabezfona.png") center / contain no-repeat;
+  border: 4px solid #ffffff;
+  box-shadow: 0 0 25px #54e0a3;
+  cursor: pointer;
+  z-index: 50;
+  animation: treasure-pulse 0.8s infinite alternate;
+}
+
+@keyframes treasure-pulse {
+  from { transform: scale(1) rotate(-8deg); }
+  to { transform: scale(1.18) rotate(8deg); }
+}
+
+@keyframes pulse-event {
+  from { transform: scale(1); }
+  to { transform: scale(1.2); }
+}
+
+.achievements-content {
+  width: min(92vw, 560px);
+  max-height: 85vh;
+  overflow-y: auto;
+}
+
+.achievement-progress {
+  margin: -8px 0 16px;
+  font-weight: 700;
+}
+
+.achievement-list {
+  display: grid;
+  gap: 8px;
+  margin-bottom: 20px;
+  text-align: left;
+}
+
+.achievement {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  border: 2px solid #b85e00;
+  border-radius: 8px;
+  background: #fff3a3;
+}
+
+.achievement.locked {
+  opacity: 0.55;
+  filter: grayscale(1);
+}
+
+.achievement-icon {
+  font-size: 26px;
+}
+
+.achievement-copy {
+  min-width: 0;
+}
+
+.achievement-copy strong,
+.achievement-copy small {
+  display: block;
+}
+
+.achievement-copy small {
+  margin-top: 2px;
+}
+
+.achievement-unlock {
+  position: fixed;
+  top: 24px;
+  left: 50%;
+  z-index: 120;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: min(320px, 88vw);
+  padding: 12px 18px;
+  color: #fff8d6;
+  background: linear-gradient(135deg, #6e2d10, #c56a18);
+  border: 2px solid #ffd86b;
+  border-radius: 12px;
+  box-shadow: 0 8px 24px rgba(54, 20, 0, 0.35), 0 0 18px rgba(255, 216, 107, 0.45);
+  pointer-events: none;
+  transform: translate(-50%, -140%);
+  animation: achievementUnlock 3.2s ease-out forwards;
+}
+
+.achievement-unlock-icon {
+  font-size: 30px;
+}
+
+.achievement-unlock strong,
+.achievement-unlock small {
+  display: block;
+}
+
+.achievement-unlock small {
+  margin-top: 3px;
+  color: #ffe9a8;
+}
+
+@keyframes achievementUnlock {
+  12%, 78% { opacity: 1; transform: translate(-50%, 0); }
+  0%, 100% { opacity: 0; }
+}

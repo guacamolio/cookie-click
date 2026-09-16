@@ -1,0 +1,47 @@
+{
+    "coins": 14617.706384620025,
+    "baseClickValue": 46,
+    "cps": 14,
+    "currentCoinTier": 1,
+    "lifetimeStats": {
+        "clicks": 230,
+        "coinsEarned": 23185.70638462003,
+        "upgradesBought": 33,
+        "pouchesOpened": 3,
+        "eventCoinsCollected": 1
+    },
+    "unlockedAchievements": [
+        "earn-1000",
+        "first-pouch",
+        "first-click",
+        "first-upgrade",
+        "click-100",
+        "upgrade-25",
+        "player-clicks-30"
+    ],
+    "milestoneUpgrades": [
+        "reinforced-finger"
+    ],
+    "upgrades": [
+        {
+            "id": "strength",
+            "cost": 399,
+            "count": 25
+        },
+        {
+            "id": "auto",
+            "cost": 85,
+            "count": 4
+        },
+        {
+            "id": "heavy_mint",
+            "cost": 330,
+            "count": 2
+        },
+        {
+            "id": "gold_touch",
+            "cost": 1322,
+            "count": 2
+        }
+    ]
+}
